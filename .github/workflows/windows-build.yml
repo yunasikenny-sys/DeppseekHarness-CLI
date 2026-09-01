@@ -29,8 +29,17 @@ jobs:
       - run: npm ci
       - run: npm run verify
       - run: npm run dist:win
+      - name: Write checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem release/*.exe | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)"
+          } | Set-Content release/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: dsh-desktop-windows
-          path: release/*
+          path: |
+            release/*-Setup.exe
+            release/*-Portable.exe
+            release/SHA256SUMS.txt
           if-no-files-found: error

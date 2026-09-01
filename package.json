@@ -28,7 +28,6 @@
     "directories": {
       "output": "release"
     },
-    "artifactName": "${productName}-${version}-${arch}.${ext}",
     "asar": true,
     "asarUnpack": [
       "node_modules/**/*.node",
@@ -46,10 +45,14 @@
       ]
     },
     "nsis": {
+      "artifactName": "DSH-Desktop-${version}-${arch}-Setup.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "DSH-Desktop-${version}-${arch}-Portable.${ext}"
     }
   }
 }
