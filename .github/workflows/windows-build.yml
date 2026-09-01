@@ -39,6 +39,7 @@ jobs:
       - run: npm ci
       - run: npm run verify
       - run: npm run dist:win
+      - run: node scripts/smoke-packaged.mjs "release/win-unpacked/DSH Desktop.exe" "release/win-unpacked/resources/app"
       - name: Write checksums
         shell: pwsh
         run: |
@@ -54,12 +55,16 @@ jobs:
             release/SHA256SUMS.txt
           if-no-files-found: error
       - name: Publish GitHub Release
-        if: (github.event_name == 'push' && github.event.head_commit.message == 'Publish v0.1.0 release') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+        if: (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Publish v')) || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release_tag || 'v0.1.0' }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
+          if (-not $env:RELEASE_TAG) {
+            $version = (Get-Content package.json | ConvertFrom-Json).version
+            $env:RELEASE_TAG = "v$version"
+          }
           $assets = Get-ChildItem release -File |
             Where-Object { $_.Name -match '(-Setup|-Portable)\.exe$|^SHA256SUMS\.txt$' } |
             ForEach-Object { $_.FullName }
