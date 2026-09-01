@@ -39,6 +39,7 @@ jobs:
       - run: npm ci
       - run: npm run verify
       - run: npm run dist:win
+      - run: node scripts/smoke-packaged.mjs "release/win-unpacked/DSH Desktop.exe" "release/win-unpacked/resources/app"
       - name: Write checksums
         shell: pwsh
         run: |
