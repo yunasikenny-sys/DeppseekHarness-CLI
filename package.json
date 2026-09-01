@@ -1,0 +1,55 @@
+{
+  "name": "dsh-electron-shell",
+  "version": "0.1.0",
+  "description": "Minimal Windows desktop shell for DeepSeek Harness",
+  "author": "DSH Desktop contributors",
+  "private": true,
+  "type": "module",
+  "main": "src/main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "verify:runtime": "node scripts/verify-runtime.mjs",
+    "verify:web": "node scripts/smoke-web.mjs",
+    "verify": "npm run test && npm run verify:runtime && npm run verify:web",
+    "pack": "electron-builder --dir",
+    "dist:win": "electron-builder --win nsis portable --x64"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.1.2-alpha.3"
+  },
+  "devDependencies": {
+    "electron": "44.1.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.example.dshdesktop",
+    "productName": "DSH Desktop",
+    "directories": {
+      "output": "release"
+    },
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/**/*.node",
+      "node_modules/**/*.dll"
+    ],
+    "files": [
+      "src/**/*",
+      "package.json",
+      "LICENSES.md"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
