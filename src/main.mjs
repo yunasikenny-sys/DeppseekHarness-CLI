@@ -9,6 +9,7 @@ import { waitForReadyUrl } from './runtime.mjs'
 
 const sourceDirectory = dirname(fileURLToPath(import.meta.url))
 let harnessProcess
+let mainWindow
 let quitting = false
 
 function harnessBin() {
@@ -52,12 +53,11 @@ function stopHarness() {
 async function createWindow() {
   const readyUrl = await startHarness()
   const allowedOrigin = new URL(readyUrl).origin
-  const window = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1380,
     height: 900,
     minWidth: 960,
     minHeight: 640,
-    show: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -65,29 +65,33 @@ async function createWindow() {
     },
   })
 
-  window.webContents.setWindowOpenHandler(({ url }) => {
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     const target = new URL(url)
     if (target.protocol === 'https:' || target.protocol === 'http:') void shell.openExternal(url)
     return { action: 'deny' }
   })
 
-  window.webContents.on('will-navigate', (event, url) => {
+  mainWindow.webContents.on('will-navigate', (event, url) => {
     if (new URL(url).origin !== allowedOrigin) event.preventDefault()
   })
 
-  window.once('ready-to-show', () => window.show())
-  await window.loadURL(readyUrl)
+  mainWindow.on('closed', () => {
+    mainWindow = undefined
+  })
+
+  await mainWindow.loadURL(readyUrl)
+  mainWindow.show()
+  mainWindow.focus()
 }
 
 const firstInstance = app.requestSingleInstanceLock()
 if (!firstInstance) app.quit()
 
 app.on('second-instance', () => {
-  const window = BrowserWindow.getAllWindows()[0]
-  if (window) {
-    if (window.isMinimized()) window.restore()
-    window.focus()
-  }
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  if (!mainWindow.isVisible()) mainWindow.show()
+  mainWindow.focus()
 })
 
 app.whenReady().then(createWindow).catch(async (error) => {
