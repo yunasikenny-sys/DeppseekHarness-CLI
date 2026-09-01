@@ -2,9 +2,17 @@ name: Windows build
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional tag to publish after a successful build
+        required: false
+        type: string
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -20,6 +28,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,3 +53,18 @@ jobs:
             release/*-Portable.exe
             release/SHA256SUMS.txt
           if-no-files-found: error
+      - name: Publish GitHub Release
+        if: (github.event_name == 'push' && github.event.head_commit.message == 'Publish v0.1.0 release') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag || 'v0.1.0' }}
+        run: |
+          $assets = Get-ChildItem release -File |
+            Where-Object { $_.Name -match '(-Setup|-Portable)\.exe$|^SHA256SUMS\.txt$' } |
+            ForEach-Object { $_.FullName }
+          if (gh release view $env:RELEASE_TAG 2>$null) {
+            gh release upload $env:RELEASE_TAG @assets --clobber
+          } else {
+            gh release create $env:RELEASE_TAG @assets --target $env:GITHUB_SHA --title "DSH Desktop $env:RELEASE_TAG" --generate-notes
+          }
