@@ -25,7 +25,7 @@ Windows artifacts are produced most reliably by `.github/workflows/windows-build
 
 - Electron starts its own executable in Node mode as the dsh child process.
 - dsh binds only to `127.0.0.1` on an OS-assigned port.
-- Electron waits for dsh's authenticated startup URL, including the process token.
+- Electron waits for dsh's loopback startup URL.
 - Harness state is stored below Electron's per-user application-data directory.
 - Closing Electron terminates the dsh process tree.
 
