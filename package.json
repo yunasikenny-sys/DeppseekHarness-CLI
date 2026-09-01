@@ -13,7 +13,7 @@
     "verify:web": "node scripts/smoke-web.mjs",
     "verify": "npm run test && npm run verify:runtime && npm run verify:web",
     "pack": "electron-builder --dir",
-    "dist:win": "electron-builder --win nsis portable --x64"
+    "dist:win": "electron-builder --win nsis portable --x64 --publish never"
   },
   "dependencies": {
     "@deepseek-ai/dsh": "0.1.2-alpha.3"
